@@ -91,6 +91,27 @@ static int select_lua( lua_State *L )
 }
 
 
+static int set_lua( lua_State *L )
+{
+    int argc = lua_gettop( L ) - 2;
+    argv_t *argv = luaL_checkudata( L, 1, MODULE_MT );
+    lua_Integer select = lauxh_checkinteger( L, 2 );
+
+    // push new arguments
+    lua_settop( argv->L, 0 );
+    if( argc > select ){
+        argv->narg = argc - select;
+        lua_xmove( L, argv->L, argv->narg );
+    }
+    else {
+        select = argc;
+        argv->narg = 0;
+    }
+
+    return select;
+}
+
+
 static int len_lua( lua_State *L )
 {
     argv_t *argv = luaL_checkudata( L, 1, MODULE_MT );
@@ -148,6 +169,7 @@ LUALIB_API int luaopen_argv( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
+        { "set", set_lua },
         { "select", select_lua },
         { NULL, NULL }
     };
