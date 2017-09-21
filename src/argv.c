@@ -48,46 +48,26 @@ typedef struct {
 
 static int select_lua( lua_State *L )
 {
-    int argc = lua_gettop( L ) - 2;
     argv_t *argv = luaL_checkudata( L, 1, MODULE_MT );
     lua_Integer select = lauxh_optinteger( L, 2, argv->narg );
 
-    switch( argc )
+    lua_settop( L, 0 );
+    if( argv->narg )
     {
-        // no arguments passed
-        case -1:
-            if( argv->narg ){
-                select = argv->narg;
-                argv->narg = 0;
-                lua_xmove( argv->L, L, select );
-                return select;
-            }
-            return 0;
-
-        // select argument passed
-        case 0:
-            if( argv->narg ){
-                lua_xmove( argv->L, L, argv->narg );
-                argc = argv->narg;
-            }
-            else {
-                return 0;
-            }
-
-        // push new arguments
-        default:
-            lua_settop( argv->L, 0 );
-            if( argc > select ){
-                argv->narg = argc - select;
-                lua_xmove( L, argv->L, argv->narg );
-            }
-            else {
-                select = argc;
-                argv->narg = 0;
-            }
-
+        lua_xmove( argv->L, L, argv->narg );
+        if( argv->narg > select ){
+            argv->narg -= select;
+            lua_xmove( L, argv->L, argv->narg );
             return select;
+        }
+
+        select = argv->narg;
+        argv->narg = 0;
+
+        return select;
     }
+
+    return 0;
 }
 
 
