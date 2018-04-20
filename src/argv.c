@@ -124,19 +124,13 @@ static int new_lua( lua_State *L )
 {
     argv_t *argv = lua_newuserdata( L, sizeof( argv_t ) );
 
-     // alloc thread
-    if( argv && ( argv->L = lua_newthread( L ) ) ){
-        argv->ref = lauxh_ref( L );
-        argv->narg = 0;
-        lauxh_setmetatable( L, MODULE_MT );
-        return 1;
-    }
+    // alloc thread
+    argv->L = lua_newthread( L );
+    argv->ref = lauxh_ref( L );
+    argv->narg = 0;
+    lauxh_setmetatable( L, MODULE_MT );
 
-    // got error
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
+    return 1;
 }
 
 
