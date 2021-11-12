@@ -67,21 +67,51 @@ static int select_lua(lua_State *L)
 
 static int set_lua(lua_State *L)
 {
-    int argc           = lua_gettop(L) - 2;
-    argv_t *argv       = luaL_checkudata(L, 1, MODULE_MT);
-    lua_Integer select = lauxh_checkinteger(L, 2);
+    int argc      = lua_gettop(L);
+    argv_t *argv  = luaL_checkudata(L, 1, MODULE_MT);
+    lua_Integer n = 0;
 
-    // push new arguments
+    // clear arguments
     lua_settop(argv->L, 0);
-    if (argc > select) {
-        argv->narg = argc - select;
-        lua_xmove(L, argv->L, argv->narg);
-    } else {
-        select     = argc;
-        argv->narg = 0;
+    argv->narg = 0;
+    // do nothing without arguments
+    if (argc == 1) {
+        return 0;
     }
 
-    return select;
+    // check arguments
+    n = lauxh_checkinteger(L, 2);
+    argc -= 2;
+    // do nothing without value arguments
+    if (argc == 0) {
+        return 0;
+    }
+
+    // store all arguments
+    if (n == 0) {
+        argv->narg = argc;
+        lua_xmove(L, argv->L, argv->narg);
+        return 0;
+    }
+
+    if (n > 0) {
+        // store arguments except first n arguments
+        if (n < argc) {
+            argv->narg = argc - n;
+            lua_xmove(L, argv->L, argv->narg);
+            return n;
+        }
+    } else if (-n < argc) {
+        // store arguments except last n arguments
+        n          = -n;
+        argv->narg = argc - n;
+        lua_xmove(L, argv->L, argc);
+        lua_xmove(argv->L, L, n);
+        return n;
+    }
+
+    // return all arguments
+    return argc;
 }
 
 static int len_lua(lua_State *L)

@@ -9,17 +9,14 @@ argument vector handling module.
 ## Installation
 
 ```sh
-luarocks install argv --from=http://mah0x211.github.io/rocks/
+luarocks install argv
 ```
 
 ---
 
+## args = argv.new()
 
-## Create an Argv Object.
-
-### args = argv.new()
-
-returns a new `Argv` object.
+create instance of `argv`.
 
 **Returns**
 
@@ -28,40 +25,69 @@ returns a new `Argv` object.
 **Example**
 
 ```lua
-local args = require('argv').new();
+local args = require('argv').new()
 ```
 
+that instance of `argv` has a '__len' metamethod.
 
----
-
-## Argv Properties
-
-
-### __len
-
-```
+```lua
 local len = #args;
 ```
 
 
-## Argv Methods
+## ... = argv:set( n, ... )
 
-
-### ... = argv:set( n, ... )
-
-remove all saved arguments and save passed variable arguments (`...`) then return the `n` saved arguments from a head.
+store arguments (`...`) except `n` arguments and returns remaining arguments.
+if `n` is positive number then it exclude the first `n` arguments, otherwise exclude the last `n` arguments.
 
 **Parameters**
 
-- `n:number`: number of arguments.
+- `n:integer`: number of arguments.
 - `...`: any arguments.
 
 **Returns**
 
-- `...`: saved arguments.
+- `...`: excluded arguments.
+
+**Example**
+
+```lua
+local dump = require('dump')
+local argv = require('argv')
+local args = argv.new()
+
+local excluded = {
+    args:set(3, 'a', 'b', 'c', 'd'),
+}
+print(dump(excluded))
+-- {
+--     [1] = "a",
+--     [2] = "b",
+--     [3] = "c"
+-- }
+print(dump({args:select()}))
+-- {
+--     [1] = "d"
+-- }
 
 
-### ... = argv:select( [n] )
+excluded = {
+    args:set(-2, 'a', 'b', 'c', 'd'),
+}
+print(dump(excluded))
+-- {
+--     [1] = "c",
+--     [2] = "d",
+-- }
+print(dump({args:select()}))
+-- {
+--     [1] = "a"
+--     [2] = "b"
+-- }
+```
+
+
+## ... = argv:select( [n] )
 
 return the `n` saved arguments from a head.
 
