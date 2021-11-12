@@ -87,13 +87,15 @@ print(dump({args:select()}))
 ```
 
 
-## ... = argv:select( [n] )
+## ... = argv:select( [n [, ...]] )
 
-return the `n` saved arguments from a head.
+returns `n` stored arguments and the passed arguments.
+if `n` is positive number then it returns the first `n` arguments, otherwise returns the last `n` arguments.
 
 **Parameters**
 
 - `n:number`: number of arguments. (default: `#argv`)
+- `...`: any arguments.
 
 **Returns**
 

@@ -38,31 +38,66 @@
 
 typedef struct {
     int ref;
-    int narg;
+    int tmp_ref;
     lua_State *L;
+    lua_State *tmp;
+    uint16_t narg;
 } argv_t;
 
 static int select_lua(lua_State *L)
 {
-    argv_t *argv       = luaL_checkudata(L, 1, MODULE_MT);
-    lua_Integer select = lauxh_optinteger(L, 2, argv->narg);
+    int argc      = lua_gettop(L) - 2;
+    argv_t *argv  = luaL_checkudata(L, 1, MODULE_MT);
+    lua_Integer n = lauxh_optinteger(L, 2, argv->narg);
 
-    lua_settop(L, 0);
-    if (argv->narg) {
-        lua_xmove(argv->L, L, argv->narg);
-        if (argv->narg > select) {
-            argv->narg -= select;
-            lua_xmove(L, argv->L, argv->narg);
-            return select;
+    // return the passed arguments
+    if (argv->narg == 0) {
+        if (argc > 0) {
+            return argc;
         }
-
-        select     = argv->narg;
-        argv->narg = 0;
-
-        return select;
+        return 0;
     }
 
-    return 0;
+    // return all stored arguments
+    if (argc < 0) {
+        if (n) {
+            lua_xmove(argv->L, L, n);
+            argv->narg = 0;
+        }
+        return n;
+    }
+
+    if (argc > 0) {
+        lua_xmove(L, argv->tmp, argc);
+    } else {
+        argc = 0;
+    }
+    lua_settop(L, 0);
+
+    // select specified number of values
+    if (n > 0) {
+        lua_xmove(argv->L, L, argv->narg);
+        if (n >= argv->narg) {
+            argv->narg = 0;
+        } else {
+            // select n arguments from the head
+            argv->narg -= n;
+            lua_xmove(L, argv->L, argv->narg);
+        }
+    } else if (-n >= argv->narg) {
+        lua_xmove(argv->L, L, argv->narg);
+        argv->narg = 0;
+    } else {
+        // select n arguments from the tail
+        argv->narg += n;
+        lua_xmove(argv->L, L, -n);
+    }
+
+    if (argc > 0) {
+        lua_xmove(argv->tmp, L, argc);
+    }
+
+    return lua_gettop(L);
 }
 
 static int set_lua(lua_State *L)
@@ -134,7 +169,9 @@ static int gc_lua(lua_State *L)
     argv_t *argv = lua_touserdata(L, 1);
 
     lua_settop(argv->L, 0);
+    lua_settop(argv->tmp, 0);
     lauxh_unref(L, argv->ref);
+    lauxh_unref(L, argv->tmp_ref);
 
     return 0;
 }
@@ -144,9 +181,11 @@ static int new_lua(lua_State *L)
     argv_t *argv = lua_newuserdata(L, sizeof(argv_t));
 
     // alloc thread
-    argv->L    = lua_newthread(L);
-    argv->ref  = lauxh_ref(L);
-    argv->narg = 0;
+    argv->L       = lua_newthread(L);
+    argv->ref     = lauxh_ref(L);
+    argv->tmp     = lua_newthread(L);
+    argv->tmp_ref = lauxh_ref(L);
+    argv->narg    = 0;
     lauxh_setmetatable(L, MODULE_MT);
 
     return 1;
