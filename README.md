@@ -1,6 +1,8 @@
 lua-argv
 ===
 
+[![test](https://github.com/mah0x211/lua-argv/actions/workflows/test.yml/badge.svg)](https://github.com/mah0x211/lua-argv/actions/workflows/test.yml)
+
 argument vector handling module.
 
 ***
