@@ -100,6 +100,61 @@ static int select_lua(lua_State *L)
     return lua_gettop(L);
 }
 
+static int add_lua(lua_State *L)
+{
+    int argc        = lua_gettop(L) - 2;
+    argv_t *argv    = luaL_checkudata(L, 1, MODULE_MT);
+    lua_Integer idx = lauxh_checkinteger(L, 2);
+    int narg        = 0;
+
+    // do nothing without value arguments
+    if (argc < 1) {
+        lua_pushboolean(L, 1);
+        return 1;
+    } else if (!lua_checkstack(argv->L, argc)) {
+        // cannot add extra slots to argv->L
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+
+    if (idx == 0 || idx > argv->narg) {
+        // insert values to tail
+        argv->narg += argc;
+        lua_xmove(L, argv->L, argc);
+        lua_pushboolean(L, 1);
+        return 1;
+    } else if (idx == 1 || -idx >= argv->narg) {
+        if (!lua_checkstack(L, argv->narg)) {
+            // cannot add extra slots to L
+            lua_pushboolean(L, 0);
+            return 1;
+        }
+        // insert values to head
+        lua_xmove(argv->L, L, argv->narg);
+        argv->narg += argc;
+        lua_xmove(L, argv->L, argv->narg);
+        lua_pushboolean(L, 1);
+        return 1;
+    } else if (idx < 0) {
+        narg = -idx;
+    } else {
+        narg = argv->narg - idx + 1;
+    }
+
+    if (!lua_checkstack(L, narg)) {
+        // cannot add extra slots to L
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    // insert values to idx
+    lua_xmove(argv->L, L, narg);
+    argv->narg += argc;
+    lua_xmove(L, argv->L, argc + narg);
+
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
 static int set_lua(lua_State *L)
 {
     int argc      = lua_gettop(L);
@@ -203,6 +258,7 @@ LUALIB_API int luaopen_argv(lua_State *L)
         };
         struct luaL_Reg method[] = {
             {"set",    set_lua   },
+            {"add",    add_lua   },
             {"select", select_lua},
             {NULL,     NULL      }
         };

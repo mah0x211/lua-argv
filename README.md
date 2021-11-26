@@ -89,6 +89,48 @@ print(dump({args:select()}))
 ```
 
 
+## ok = argv:add( pos, ... )
+
+insert arguments (`...`) at position `pos`. 'pos' can be a negative number. The last argument is position `0` and `-1`.
+
+**Parameters**
+
+- `pos:integer`: insert position.
+- `...`: any arguments.
+
+**Returns**
+
+- `ok:boolean`: `false` if the stack cannot be allocated.
+
+**Example**
+
+```lua
+local dump = require('dump')
+local argv = require('argv')
+local v = argv.new()
+
+v:set(0, 'a', 'b', 'c', 'd')
+v:add(0, '1', '2', '3')
+v:add(1, 'X', 'Y', 'Z')
+v:add(3, 'foo', 'bar')
+print(dump({v:select()}))
+-- {
+--     [1] = "X",
+--     [2] = "Y",
+--     [3] = "foo",
+--     [4] = "bar",
+--     [5] = "Z",
+--     [6] = "a",
+--     [7] = "b",
+--     [8] = "c",
+--     [9] = "d",
+--     [10] = "1",
+--     [11] = "2",
+--     [12] = "3"
+-- }
+```
+
+
 ## ... = argv:select( [n [, ...]] )
 
 returns `n` stored arguments and the passed arguments.
