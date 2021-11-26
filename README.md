@@ -37,7 +37,7 @@ local len = #args;
 ```
 
 
-## ... = argv:set( n, ... )
+## ok, ... = argv:set( n, ... )
 
 store arguments (`...`) except `n` arguments and returns remaining arguments.
 if `n` is positive number then it exclude the first `n` arguments, otherwise exclude the last `n` arguments.
@@ -49,6 +49,7 @@ if `n` is positive number then it exclude the first `n` arguments, otherwise exc
 
 **Returns**
 
+- `ok:boolean`: `false` if the stack cannot be allocated.
 - `...`: excluded arguments.
 
 **Example**
@@ -63,9 +64,10 @@ local excluded = {
 }
 print(dump(excluded))
 -- {
---     [1] = "a",
---     [2] = "b",
---     [3] = "c"
+--     [1] = true,
+--     [2] = "a",
+--     [3] = "b",
+--     [4] = "c"
 -- }
 print(dump({args:select()}))
 -- {
@@ -78,8 +80,9 @@ excluded = {
 }
 print(dump(excluded))
 -- {
---     [1] = "c",
---     [2] = "d",
+--     [1] = true,
+--     [2] = "c",
+--     [3] = "d",
 -- }
 print(dump({args:select()}))
 -- {
@@ -131,7 +134,7 @@ print(dump({v:select()}))
 ```
 
 
-## ok, ... = argv:select( [n [, ...]] )
+## ... = argv:select( [n [, ...]] )
 
 returns `n` stored arguments and the passed arguments.
 if `n` is positive number then it returns the first `n` arguments, otherwise returns the last `n` arguments.
@@ -143,6 +146,5 @@ if `n` is positive number then it returns the first `n` arguments, otherwise ret
 
 **Returns**
 
-- `ok:boolean`: `false` if the stack cannot be allocated.
 - `...`: saved arguments.
 
