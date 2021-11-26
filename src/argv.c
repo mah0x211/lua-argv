@@ -157,7 +157,7 @@ static int add_lua(lua_State *L)
 
 static int set_lua(lua_State *L)
 {
-    int argc      = lua_gettop(L);
+    int argc      = lua_gettop(L) - 2;
     argv_t *argv  = luaL_checkudata(L, 1, MODULE_MT);
     lua_Integer n = 0;
 
@@ -165,43 +165,59 @@ static int set_lua(lua_State *L)
     lua_settop(argv->L, 0);
     argv->narg = 0;
     // do nothing without arguments
-    if (argc == 1) {
-        return 0;
+    if (argc < 0) {
+        lua_pushboolean(L, 1);
+        return 1;
     }
 
-    // check arguments
     n = lauxh_checkinteger(L, 2);
-    argc -= 2;
-    // do nothing without value arguments
-    if (argc == 0) {
-        return 0;
-    }
-
-    // store all arguments
-    if (n == 0) {
-        argv->narg = argc;
-        lua_xmove(L, argv->L, argv->narg);
-        return 0;
-    }
-
-    if (n > 0) {
-        // store arguments except first n arguments
-        if (n < argc) {
-            argv->narg = argc - n;
-            lua_xmove(L, argv->L, argv->narg);
-            return n;
+    if (argc < 1) {
+        // do nothing without value arguments
+        lua_pushboolean(L, 1);
+        return 1;
+    } else if (n >= argc || -n >= argc) {
+        // return all arguments
+        lua_pushboolean(L, 1);
+        lua_replace(L, 2);
+        return argc + 1;
+    } else if (n == 0) {
+        // store all arguments
+        if (!lua_checkstack(argv->L, argc)) {
+            // cannot add extra slots to argv->L
+            lua_pushboolean(L, 0);
+            return 1;
         }
-    } else if (-n < argc) {
-        // store arguments except last n arguments
-        n          = -n;
-        argv->narg = argc - n;
         lua_xmove(L, argv->L, argc);
-        lua_xmove(argv->L, L, n);
-        return n;
+        argv->narg = argc;
+        lua_pushboolean(L, 1);
+        return 1;
+    } else if (n > 0) {
+        // store arguments except first n arguments
+        int narg = argc - n;
+        if (!lua_checkstack(argv->L, narg)) {
+            // cannot add extra slots to argv->L
+            lua_pushboolean(L, 0);
+            return 1;
+        }
+        lua_xmove(L, argv->L, narg);
+        argv->narg = narg;
+        lua_pushboolean(L, 1);
+        lua_replace(L, 2);
+        return n + 1;
     }
 
-    // return all arguments
-    return argc;
+    // store arguments except last n arguments
+    if (!lua_checkstack(argv->L, argc)) {
+        // cannot add extra slots to argv->L
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    lua_xmove(L, argv->L, argc);
+    lua_pushboolean(L, 1);
+    n = -n;
+    lua_xmove(argv->L, L, n);
+    argv->narg = argc - n;
+    return n + 1;
 }
 
 static int len_lua(lua_State *L)

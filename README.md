@@ -131,7 +131,7 @@ print(dump({v:select()}))
 ```
 
 
-## ... = argv:select( [n [, ...]] )
+## ok, ... = argv:select( [n [, ...]] )
 
 returns `n` stored arguments and the passed arguments.
 if `n` is positive number then it returns the first `n` arguments, otherwise returns the last `n` arguments.
@@ -143,5 +143,6 @@ if `n` is positive number then it returns the first `n` arguments, otherwise ret
 
 **Returns**
 
+- `ok:boolean`: `false` if the stack cannot be allocated.
 - `...`: saved arguments.
 
