@@ -14,17 +14,17 @@ function testcase.set()
 
     -- test that set all arguments
     local remains = {v:set(0, 'a', 'b', 'c', 'd')}
-    assert.equal(remains, {})
+    assert.equal(remains, {true})
     assert.equal({v:select()}, {'a', 'b', 'c', 'd'})
 
     -- test that set the arguments exclude the first three arguments
     remains = {v:set(3, 'a', 'b', 'c', 'd')}
-    assert.equal(remains, {'a', 'b', 'c'})
+    assert.equal(remains, {true, 'a', 'b', 'c'})
     assert.equal({v:select()}, {'d'})
 
     -- test that set the arguments exclude the last two arguments
     remains = {v:set(-2, 'a', 'b', 'c', 'd')}
-    assert.equal(remains, {'c', 'd'})
+    assert.equal(remains, {true, 'c', 'd'})
     assert.equal({v:select()}, {'a', 'b'})
 
     -- test that reset arguments with no arguments
