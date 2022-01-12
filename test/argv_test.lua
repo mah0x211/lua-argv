@@ -1,6 +1,5 @@
 local unpack = unpack or table.unpack
 local argv = require('argv')
-local assert = require('assertex')
 local testcase = require('testcase')
 
 function testcase.new()
