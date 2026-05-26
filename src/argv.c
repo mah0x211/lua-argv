@@ -25,14 +25,10 @@
  *
  */
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-// lua
+// depend
 #include "lauxhlib.h"
+// lua
 #include <lauxlib.h>
-#include <lua.h>
 
 #define MODULE_MT "argv"
 
