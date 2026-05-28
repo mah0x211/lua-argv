@@ -42,7 +42,7 @@ function testcase.set()
     local err = assert.throws(function()
         v:set('foo')
     end)
-    assert.match(err, '#1 .+ [(]number expected, got string', false)
+    assert.match(err, '#1 .+ [(]integer expected, got string', false)
 end
 
 function testcase.add()
